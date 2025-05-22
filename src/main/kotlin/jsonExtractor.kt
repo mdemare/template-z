@@ -18,14 +18,12 @@ fun jsonExtractor(htmlFile: File): JSONObject? {
 private fun processElementRecursively(element: Element?): JSONObject? {
     if (element == null) return null
 
-    var rootObject: JSONObject? = null
-
     // Check if element has data-component attribute
     val componentName = element.attr("data-component")
 
     if (componentName.isNotEmpty()) {
         // Create root object with component name as key
-        rootObject = JSONObject()
+        val rootObject = JSONObject()
         val componentObject = JSONObject()
         rootObject.put(componentName, componentObject)
 
@@ -58,13 +56,11 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
 
         // Handle data-text-content attribute
         if (textContentAttr.isNotEmpty()) {
-            parseAndAddTextContent(textContentAttr, ancestorStack)
+            parseAndAddProperty(textContentAttr, ancestorStack, "string")
         }
 
         // Handle data-collection attribute
         if (collectionAttr.isNotEmpty()) {
-            parseAndAddTextContent(collectionAttr, ancestorStack)
-
             // Find first child with data-collection-item
             val collectionItem = child.children().firstOrNull { it.hasAttr("data-collection-item") }
             if (collectionItem != null) {
@@ -75,7 +71,7 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
                     if (!currentValue.has("components")) {
                         currentValue.put("components", JSONObject())
                     }
-
+                    currentValue.put("array", true)
                     val componentsObject = currentValue.getJSONObject("components")
                     val collectionItemObject = JSONObject()
                     componentsObject.put(collectionItemName, collectionItemObject)
@@ -122,11 +118,11 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
     }
 }
 
-private fun parseAndAddTextContent(textContentAttr: String, ancestorStack: List<Pair<String, JSONObject>>) {
-    // Parse data-text-content attribute (expecting format like "objectName.propertyName")
-    val parts = textContentAttr.split(".", limit = 2)
+private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair<String, JSONObject>>, propertyType: String) {
+    // Parse attribute value (expecting format like "objectName.propertyName")
+    val parts = attributeValue.split(".", limit = 2)
     if (parts.size != 2) {
-        println("Warning: Invalid data-text-content format: $textContentAttr (expected format: objectName.propertyName)")
+        println("Warning: Invalid attribute format: $attributeValue (expected format: objectName.propertyName)")
         return
     }
 
@@ -148,17 +144,22 @@ private fun parseAndAddTextContent(textContentAttr: String, ancestorStack: List<
             // Check if property already exists to avoid duplicates
             var propertyExists = false
             for (j in 0 until propertiesArray.length()) {
-                if (propertiesArray.getString(j) == propertyName) {
+                val existingProperty = propertiesArray.getJSONObject(j)
+                if (existingProperty.getString("name") == propertyName) {
                     propertyExists = true
                     break
                 }
             }
 
             if (!propertyExists) {
-                propertiesArray.put(propertyName)
+                val propertyObject = JSONObject().apply {
+                    put("name", propertyName)
+                    put("type", propertyType)
+                }
+                propertiesArray.put(propertyObject)
             }
 
-            println("Added property '$propertyName' to component '$objectName'")
+            println("Added property '$propertyName' (type: $propertyType) to component '$objectName'")
             return
         }
     }

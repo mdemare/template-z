@@ -1,164 +1,237 @@
 package nl.mdemare
 
-import com.squareup.kotlinpoet.*
+
 import org.json.JSONObject
-import java.io.File
+import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
-/**
- * Generates Kotlin data classes from a nested JSON structure.
- *
- * @param json The JSON object to convert to data classes
- * @param baseClassName The name for the root class
- * @param packageName The package name for the generated classes
- * @param outputDir Directory where Kotlin files will be generated
- */
-fun generateDataClassesFromJson(
-    json: JSONObject,
-    baseClassName: String,
-    packageName: String,
-    outputDir: String
-) {
-    val processedClasses = mutableMapOf<String, TypeSpec.Builder>()
+fun generateDataClasses(jsonString: String) {
+    val json = JSONObject(jsonString)
+    val rootComponent = json.getJSONObject("root")
 
-    // Process the root object
-    processJsonObject(json, baseClassName, processedClasses)
+    val fileSpec = FileSpec.builder("", "GeneratedClasses")
+    val generatedClasses = mutableSetOf<String>()
 
-    // Generate Kotlin files for each class
-    for ((className, classBuilder) in processedClasses) {
-        val file = FileSpec.builder(packageName, className)
-            .addType(classBuilder.build())
-            .build()
+    generateDataClass("Root", rootComponent, fileSpec, generatedClasses)
 
-        val directory = File(outputDir)
-        directory.mkdirs()
-        file.writeTo(directory)
-    }
+    // Print the generated code
+    println(fileSpec.build().toString())
 }
 
-/**
- * Recursively processes a JSON object to build data class definitions.
- *
- * @param jsonObject The JSON object to process
- * @param className The name for the generated class
- * @param processedClasses Map to store generated class builders
- * @return The TypeName for the generated class
- */
-private fun processJsonObject(
-    jsonObject: JSONObject,
+fun generateDataClass(
     className: String,
-    processedClasses: MutableMap<String, TypeSpec.Builder>
-): TypeName {
-    // Create class builder if not already created
-    if (!processedClasses.containsKey(className)) {
-        val classBuilder = TypeSpec.classBuilder(className)
-            .addModifiers(KModifier.DATA)
-            .primaryConstructor(FunSpec.constructorBuilder().build())
+    component: JSONObject,
+    fileSpec: FileSpec.Builder,
+    generatedClasses: MutableSet<String>
+) {
+    if (generatedClasses.contains(className)) {
+        return
+    }
 
-        processedClasses[className] = classBuilder
+    val dataClassBuilder = TypeSpec.classBuilder(className)
+        .addModifiers(KModifier.DATA)
 
-        // Process all properties
-        val properties = mutableListOf<PropertySpec>()
-        val constructorBuilder = FunSpec.constructorBuilder()
+    val constructorBuilder = FunSpec.constructorBuilder()
+    val properties = mutableListOf<PropertySpec>()
 
-        jsonObject.keys().forEach { key ->
-            val propertyName = sanitizePropertyName(key)
-            val value = jsonObject.get(key)
+    // Process nested components first (to handle dependencies)
+    if (component.has("components")) {
+        val components = component.getJSONObject("components")
+        val componentNames = components.keys()
 
-            val (propertyType, needsImport) = when {
-                value is JSONObject -> {
-                    // Recursively process nested object
-                    val nestedClassName = "${className}${key.capitalize()}"
-                    val typeName = processJsonObject(value, nestedClassName, processedClasses)
-                    Pair(typeName, true)
-                }
-                else -> {
-                    // Default to String for all primitive values
-                    Pair(String::class.asTypeName(), false)
-                }
-            }
+        while (componentNames.hasNext()) {
+            val componentName = componentNames.next()
+            val nestedClassName = componentName.replaceFirstChar { it.uppercase() }
+            val nestedComponent = components.getJSONObject(componentName)
 
-            // Add parameter to constructor
-            constructorBuilder.addParameter(
-                ParameterSpec.builder(propertyName, propertyType)
-                    .build()
-            )
+            // Recursively generate nested classes
+            generateDataClass(nestedClassName, nestedComponent, fileSpec, generatedClasses)
+        }
+    }
 
-            // Create property with constructor reference
-            val property = PropertySpec.builder(propertyName, propertyType)
-                .initializer(propertyName)
+    // Process direct properties
+    if (component.has("properties")) {
+        val propertiesArray = component.getJSONArray("properties")
+
+        for (i in 0 until propertiesArray.length()) {
+            val property = propertiesArray.getJSONObject(i)
+            val propName = property.getString("name")
+            val propType = property.getString("type")
+
+            val kotlinType = mapJsonTypeToKotlinType(propType, propName)
+
+            val propertySpec = PropertySpec.builder(propName, kotlinType)
+                .initializer(propName)
                 .build()
 
-            properties.add(property)
+            properties.add(propertySpec)
+
+            constructorBuilder.addParameter(propName, kotlinType)
         }
-
-        // Update the class with constructor and properties
-        classBuilder.primaryConstructor(constructorBuilder.build())
-        properties.forEach { classBuilder.addProperty(it) }
     }
 
-    return ClassName("", className)
+    // Add constructor and properties to the class
+    dataClassBuilder.primaryConstructor(constructorBuilder.build())
+    properties.forEach { dataClassBuilder.addProperty(it) }
+
+    fileSpec.addType(dataClassBuilder.build())
+    generatedClasses.add(className)
 }
 
-/**
- * Sanitizes a JSON key to be a valid Kotlin property name.
- */
-private fun sanitizePropertyName(key: String): String {
-    // Handle invalid characters and reserved keywords
-    val sanitized = key.replace(Regex("[^a-zA-Z0-9_]"), "_")
-
-    // Handle starting with number
-    val startsWithLetter = sanitized.matches(Regex("^[a-zA-Z_].*"))
-    val finalName = if (!startsWithLetter) "_$sanitized" else sanitized
-
-    // Handle Kotlin keywords
-    return when (finalName) {
-        "as", "break", "class", "continue", "do", "else", "false", "for", "fun",
-        "if", "in", "interface", "is", "null", "object", "package", "return",
-        "super", "this", "throw", "true", "try", "typealias", "typeof",
-        "val", "var", "when", "while" -> "${finalName}_"
-        else -> finalName
+fun mapJsonTypeToKotlinType(jsonType: String, propertyName: String): TypeName {
+    return when {
+        jsonType == "string" -> STRING
+        jsonType == "array" -> {
+            val elementType = inferArrayElementType(propertyName)
+            LIST.parameterizedBy(elementType)
+        }
+        jsonType == "boolean" -> BOOLEAN
+        jsonType == "number" -> INT
+        else -> {
+            // Custom type - capitalize first letter
+            ClassName("", jsonType.replaceFirstChar { it.uppercase() })
+        }
     }
 }
 
-/**
- * Convert string to title case for class names.
- */
-private fun String.capitalize(): String {
-    return if (this.isEmpty()) this
-    else this[0].uppercaseChar() + this.substring(1)
+fun inferArrayElementType(propertyName: String): TypeName {
+    return when {
+        propertyName.contains("player", ignoreCase = true) -> ClassName("", "Player")
+        propertyName.contains("hand", ignoreCase = true) -> ClassName("", "Hand")
+        propertyName.contains("panel", ignoreCase = true) -> ClassName("", "Panel")
+        else -> ANY
+    }
 }
 
-// Example usage:
+// Alternative simpler function without kotlinpoet
+fun generateDataClassesSimple(jsonString: String) {
+    val json = JSONObject(jsonString)
+    val rootComponent = json.getJSONObject("root")
+
+    val generatedClasses = mutableListOf<String>()
+    val processedClasses = mutableSetOf<String>()
+
+    generateDataClassSimple("Root", rootComponent, generatedClasses, processedClasses)
+
+    // Print all generated classes
+    generatedClasses.forEach { println(it) }
+}
+
+fun generateDataClassSimple(
+    className: String,
+    component: JSONObject,
+    generatedClasses: MutableList<String>,
+    processedClasses: MutableSet<String>
+) {
+    if (processedClasses.contains(className)) {
+        return
+    }
+
+    // Process nested components first
+    if (component.has("components")) {
+        val components = component.getJSONObject("components")
+        val componentNames = components.keys()
+
+        while (componentNames.hasNext()) {
+            val componentName = componentNames.next()
+            val nestedClassName = componentName.replaceFirstChar { it.uppercase() }
+            val nestedComponent = components.getJSONObject(componentName)
+
+            generateDataClassSimple(nestedClassName, nestedComponent, generatedClasses, processedClasses)
+        }
+    }
+
+    val properties = mutableListOf<String>()
+
+    // Process direct properties
+    if (component.has("properties")) {
+        val propertiesArray = component.getJSONArray("properties")
+
+        for (i in 0 until propertiesArray.length()) {
+            val property = propertiesArray.getJSONObject(i)
+            val propName = property.getString("name")
+            val propType = property.getString("type")
+
+            val kotlinType = when {
+                propType == "string" -> "String"
+                propType == "array" -> "List<${inferArrayElementTypeSimple(propName)}>"
+                propType == "boolean" -> "Boolean"
+                propType == "number" -> "Int"
+                else -> propType.replaceFirstChar { it.uppercase() }
+            }
+
+            properties.add("$propName: $kotlinType")
+        }
+    }
+
+    val dataClass = if (properties.isEmpty()) {
+        "data class $className()"
+    } else {
+        "data class $className(${properties.joinToString(", ")})"
+    }
+
+    generatedClasses.add(dataClass)
+    processedClasses.add(className)
+}
+
+fun inferArrayElementTypeSimple(propertyName: String): String {
+    return when {
+        propertyName.contains("player", ignoreCase = true) -> "Player"
+        propertyName.contains("hand", ignoreCase = true) -> "Hand"
+        propertyName.contains("panel", ignoreCase = true) -> "Panel"
+        else -> "Any"
+    }
+}
+
+// Example usage
 fun main() {
-    val jsonString = """
+    val jsonInput = """
     {
-        "user": {
-            "name": "John Doe",
-            "address": {
-                "street": "123 Main St",
-                "city": "New York",
-                "zipCode": "10001"
+        "root": {
+            "components": {
+                "panel": {
+                    "components": {
+                        "player": {
+                            "components": {
+                                "playerHand": {}
+                            },
+                            "properties": [
+                                {
+                                    "name": "roleName",
+                                    "type": "string"
+                                },
+                                {
+                                    "name": "playerHands",
+                                    "type": "array"
+                                }
+                            ]
+                        }
+                    },
+                    "properties": [
+                        {
+                            "name": "speed",
+                            "type": "string"
+                        }
+                    ]
+                }
             },
-            "contacts": {
-                "email": "john@example.com",
-                "phone": "555-1234"
-            }
-        },
-        "settings": {
-            "theme": "dark",
-            "notifications": {
-                "email": "weekly",
-                "push": "daily"
-            }
+            "properties": [
+                {
+                    "name": "players",
+                    "type": "array"
+                },
+                {
+                    "name": "panel",
+                    "type": "Panel"
+                }
+            ]
         }
     }
-    """
+    """.trimIndent()
 
-    val jsonObject = JSONObject(jsonString)
-    generateDataClassesFromJson(
-        jsonObject,
-        "RootData",
-        "com.example.model",
-        "src/main/kotlin"
-    )
+    println("=== Using KotlinPoet ===")
+    generateDataClasses(jsonInput)
+
+    println("\n=== Using Simple String Generation ===")
+    generateDataClassesSimple(jsonInput)
 }
