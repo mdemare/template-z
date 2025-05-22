@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 // Hardcoded path to the HTML file
-const val HTML_FILE_PATH = "/Users/mdemare/iCloud/proj/contract_to_cure/public/game.html"
+const val HTML_FILE_PATH = "/Users/mdemare/iCloud/proj/template-z/game.html"
 
 fun main(args: Array<String>) {
     println("Running basic server...")

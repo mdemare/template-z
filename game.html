@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="generator" content=
+          "HTML Tidy for HTML5 for Apple macOS version 5.8.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content=
+          "width=device-width, initial-scale=1.0">
+  <title>Pandemic: Global Disease Control</title>
+  <link rel="stylesheet" href="http://localhost:4567/css/buttons.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/card_animation.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/card_selection.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/current_player.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/game_over.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/infection_cards.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/interface.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/map.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/notification.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/player_cards.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/player_panel.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/share_knowledge.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/player_selection.css">
+  <link rel="stylesheet" href="http://localhost:4567/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com"
+        crossorigin="">
+  <link href=
+                "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&amp;family=Roboto+Slab:wght@400;700&amp;display=swap"
+        rel="stylesheet">
+  <script type="module" src="http://localhost:4567/js/action_buttons.js"></script>
+  <script type="module" src="http://localhost:4567/js/constants.js"></script>
+  <script type="module" src="http://localhost:4567/js/current_player.js"></script>
+  <script type="module" src="http://localhost:4567/js/end_turn_events.js"></script>
+  <script type="module" src="http://localhost:4567/js/events.js"></script>
+  <script type="module" src="http://localhost:4567/js/game_state.js"></script>
+  <script type="module" src="http://localhost:4567/js/game_over.js"></script>
+  <script type="module" src="http://localhost:4567/js/map.js"></script>
+  <script type="module" src="http://localhost:4567/js/player_actions.js"></script>
+  <script type="module" src="http://localhost:4567/js/player_panel.js"></script>
+  <script type="module" src="http://localhost:4567/js/scrolling.js"></script>
+</head>
+<body data-component="root: Pandemic">
+<div class="game-header">
+  <div class="logo-container">
+    <h1>PANDEMIC</h1>
+    <h2>Global Disease Control</h2>
+  </div>
+</div>
+<div class="game-interface">
+  <div class="game-status">
+    <div class="status-panel">
+      <h3>Game Status</h3>
+      <div class="status-item">
+        <span>Turn:</span> <span id="turn-counter">10</span>
+      </div>
+      <div class="status-item">
+        <span>Outbreaks:</span> <span id=
+                                              "outbreak-counter">3</span>
+      </div>
+      <div class="status-item">
+        <span>Player Cards:</span> <span id=
+                                                 "player-cards">33</span>
+      </div>
+      <div class="status-item">
+        <span>Infection Cards:</span> <span id=
+                                                    "infection-cards">42</span>
+      </div>
+    </div>
+    <div class="cure-status">
+      <h3>Disease Status</h3>
+      <div class="cure-grid">
+        <div class="cure-item blue">
+          <div class="cure-color"></div>
+          <div id="blue-cure" class="cure-label cured">
+            CURED
+          </div>
+        </div>
+        <div class="cure-item yellow">
+          <div class="cure-color"></div>
+          <div id="yellow-cure" class="cure-label">
+            Not Cured
+          </div>
+        </div>
+        <div class="cure-item black">
+          <div class="cure-color"></div>
+          <div id="black-cure" class="cure-label">
+            Not Cured
+          </div>
+        </div>
+        <div class="cure-item red">
+          <div class="cure-color"></div>
+          <div id="red-cure" class="cure-label">
+            Not Cured
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="map-wrapper">
+    <div class="map-container"
+         style="cursor: grab;">
+      <div class="map-inner"
+           style=
+                   "transform: translate(-1300px) scale(1);">
+        <svg class="connections-layer" width="100%" height=
+                "100%">
+          <line x1="260" y1="225" x2="340" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1560" y1="225" x2="1640" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2860" y1="225" x2="2940" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="230" y1="105" x2="100" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1530" y1="105" x2="1400" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2830" y1="105" x2="2700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="230" y1="105" x2="150" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1530" y1="105" x2="1450" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2830" y1="105" x2="2750" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="230" y1="105" x2="200" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1530" y1="105" x2="1500" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2830" y1="105" x2="2800" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="230" y1="105" x2="260" y2="225" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1530" y1="105" x2="1560" y2="225" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2830" y1="105" x2="2860" y2="225" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="230" y1="105" x2="290" y2="95" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1530" y1="105" x2="1590" y2="95" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2830" y1="105" x2="2890" y2="95" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="290" y1="95" x2="350" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1590" y1="95" x2="1650" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2890" y1="95" x2="2950" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="290" y1="95" x2="340" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1590" y1="95" x2="1640" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2890" y1="95" x2="2940" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="350" y1="115" x2="340" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1650" y1="115" x2="1640" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2950" y1="115" x2="2940" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="490" y1="75" x2="350" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1790" y1="75" x2="1650" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3090" y1="75" x2="2950" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="490" y1="75" x2="550" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1790" y1="75" x2="1850" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3090" y1="75" x2="3150" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="490" y1="75" x2="530" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1790" y1="75" x2="1830" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3090" y1="75" x2="3130" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="460" y1="135" x2="490" y2="75" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1760" y1="135" x2="1790" y2="75" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3060" y1="135" x2="3090" y2="75" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="460" y1="135" x2="350" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1760" y1="135" x2="1650" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3060" y1="135" x2="2950" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="460" y1="135" x2="530" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1760" y1="135" x2="1830" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3060" y1="135" x2="3130" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="460" y1="135" x2="400" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1760" y1="135" x2="1700" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3060" y1="135" x2="3000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="460" y1="135" x2="500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1760" y1="135" x2="1800" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3060" y1="135" x2="3100" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="530" y1="105" x2="550" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1830" y1="105" x2="1850" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3130" y1="105" x2="3150" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="530" y1="105" x2="580" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1830" y1="105" x2="1880" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3130" y1="105" x2="3180" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="580" y1="115" x2="550" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1880" y1="115" x2="1850" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3180" y1="115" x2="3150" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="640" y1="65" x2="550" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1940" y1="65" x2="1850" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3240" y1="65" x2="3150" y2="25" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="100" y1="135" x2="0" y2="-30" stroke="#aaa"
+                stroke-width="2" stroke-dasharray="5,3" stroke-linecap=
+                        "round"></line>
+          <line x1="1400" y1="135" x2="1050" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2700" y1="135" x2="2350" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="150" y1="185" x2="100" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1450" y1="185" x2="1400" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2750" y1="185" x2="2700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="150" y1="185" x2="200" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1450" y1="185" x2="1500" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2750" y1="185" x2="2800" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="150" y1="185" x2="0" y2="86.66666666666666"
+                stroke="#aaa" stroke-width="2" stroke-dasharray="5,3"
+                stroke-linecap="round"></line>
+          <line x1="1450" y1="185" x2="1000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2750" y1="185" x2="2300" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="200" y1="275" x2="300" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1500" y1="275" x2="1600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2800" y1="275" x2="2900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="300" y1="275" x2="260" y2="225" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1600" y1="275" x2="1560" y2="225" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2900" y1="275" x2="2860" y2="225" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="300" y1="275" x2="200" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1600" y1="275" x2="1500" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2900" y1="275" x2="2800" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="300" y1="275" x2="340" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1600" y1="275" x2="1640" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2900" y1="275" x2="2940" y2="195" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="300" y1="275" x2="300" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1600" y1="275" x2="1600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2900" y1="275" x2="2900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="300" y1="335" x2="400" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1600" y1="335" x2="1700" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2900" y1="335" x2="3000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="250" y1="385" x2="200" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1550" y1="385" x2="1500" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2850" y1="385" x2="2800" y2="275" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="250" y1="385" x2="300" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1550" y1="385" x2="1600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2850" y1="385" x2="2900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="250" y1="385" x2="270" y2="435" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1550" y1="385" x2="1570" y2="435" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2850" y1="385" x2="2870" y2="435" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="350" y1="435" x2="300" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1650" y1="435" x2="1600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2950" y1="435" x2="2900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="350" y1="435" x2="400" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1650" y1="435" x2="1700" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2950" y1="435" x2="3000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="500" y1="335" x2="400" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1800" y1="335" x2="1700" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3100" y1="335" x2="3000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="500" y1="335" x2="600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1800" y1="335" x2="1900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3100" y1="335" x2="3200" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="530" y1="415" x2="500" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1830" y1="415" x2="1800" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3130" y1="415" x2="3100" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="530" y1="415" x2="600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1830" y1="415" x2="1900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3130" y1="415" x2="3200" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="465" x2="530" y2="415" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="465" x2="1830" y2="415" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="465" x2="3130" y2="415" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="465" x2="600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="465" x2="1900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="465" x2="3200" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="500" y1="185" x2="530" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1800" y1="185" x2="1830" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3100" y1="185" x2="3130" y2="105" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="500" y1="185" x2="600" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1800" y1="185" x2="1900" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3100" y1="185" x2="3200" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="165" x2="580" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="165" x2="1880" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="165" x2="3180" y2="115" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="165" x2="640" y2="65" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="165" x2="1940" y2="65" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="165" x2="3240" y2="65" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="165" x2="650" y2="125" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="165" x2="1950" y2="125" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="165" x2="3250" y2="125" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="235" x2="500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="235" x2="1800" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="235" x2="3100" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="235" x2="600" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="235" x2="1900" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="235" x2="3200" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="235" x2="600" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="235" x2="1900" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="235" x2="3200" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="600" y1="235" x2="650" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1900" y1="235" x2="1950" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3200" y1="235" x2="3250" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="125" x2="640" y2="65" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="125" x2="1940" y2="65" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="125" x2="3240" y2="65" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="125" x2="700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="125" x2="2000" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="125" x2="3300" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="185" x2="600" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="185" x2="1900" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="185" x2="3200" y2="165" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="185" x2="600" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="185" x2="1900" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="185" x2="3200" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="185" x2="650" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="185" x2="1950" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="185" x2="3250" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="185" x2="700" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="185" x2="2000" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="185" x2="3300" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="650" y1="185" x2="700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1950" y1="185" x2="2000" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3250" y1="185" x2="3300" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="700" y1="235" x2="700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2000" y1="235" x2="2000" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3300" y1="235" x2="3300" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="700" y1="235" x2="650" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2000" y1="235" x2="1950" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3300" y1="235" x2="3250" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="700" y1="235" x2="750" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2000" y1="235" x2="2050" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3300" y1="235" x2="3350" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="750" y1="185" x2="700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2050" y1="185" x2="2000" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3350" y1="185" x2="3300" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="750" y1="185" x2="700" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2050" y1="185" x2="2000" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3350" y1="185" x2="3300" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="750" y1="185" x2="750" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2050" y1="185" x2="2050" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3350" y1="185" x2="3350" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="750" y1="185" x2="800" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2050" y1="185" x2="2100" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3350" y1="185" x2="3400" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="800" y1="335" x2="750" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2100" y1="335" x2="2050" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3400" y1="335" x2="3350" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="800" y1="335" x2="750" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2100" y1="335" x2="2050" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3400" y1="335" x2="3350" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="800" y1="335" x2="800" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2100" y1="335" x2="2100" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3400" y1="335" x2="3400" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="800" y1="335" x2="870" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2100" y1="335" x2="2170" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3400" y1="335" x2="3470" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="800" y1="185" x2="900" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2100" y1="185" x2="2200" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3400" y1="185" x2="3500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="850" y1="235" x2="800" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2150" y1="235" x2="2100" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3450" y1="235" x2="3400" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="850" y1="235" x2="800" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2150" y1="235" x2="2100" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3450" y1="235" x2="3400" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="850" y1="235" x2="870" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2150" y1="235" x2="2170" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3450" y1="235" x2="3470" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="850" y1="235" x2="900" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2150" y1="235" x2="2200" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3450" y1="235" x2="3500" y2="285" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="850" y1="235" x2="900" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2150" y1="235" x2="2200" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3450" y1="235" x2="3500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="870" y1="335" x2="1000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2170" y1="335" x2="2300" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3470" y1="335" x2="3600" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="900" y1="285" x2="870" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2200" y1="285" x2="2170" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3500" y1="285" x2="3470" y2="335" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="900" y1="285" x2="900" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2200" y1="285" x2="2200" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3500" y1="285" x2="3500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="900" y1="285" x2="970" y2="305" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2200" y1="285" x2="2270" y2="305" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3500" y1="285" x2="3570" y2="305" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="950" y1="135" x2="1050" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2250" y1="135" x2="2350" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3550" y1="135" x2="3650" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="950" y1="135" x2="1000" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2250" y1="135" x2="2300" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3550" y1="135" x2="3600" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="950" y1="135" x2="900" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2250" y1="135" x2="2200" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3550" y1="135" x2="3500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="950" y1="85" x2="950" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2250" y1="85" x2="2250" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3550" y1="85" x2="3550" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="950" y1="85" x2="1000" y2="85" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2250" y1="85" x2="2300" y2="85" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3550" y1="85" x2="3600" y2="85" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1000" y1="85" x2="950" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2300" y1="85" x2="2250" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3600" y1="85" x2="3550" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1000" y1="85" x2="1050" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2300" y1="85" x2="2350" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3600" y1="85" x2="3650" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1050" y1="185" x2="1000" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2350" y1="185" x2="2300" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3650" y1="185" x2="3600" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1050" y1="185" x2="1050" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2350" y1="185" x2="2350" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3650" y1="185" x2="3650" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="1000" y1="235" x2="900" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2300" y1="235" x2="2200" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3600" y1="235" x2="3500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="970" y1="305" x2="1000" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2270" y1="305" x2="2300" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3570" y1="305" x2="3600" y2="235" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="970" y1="305" x2="900" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2270" y1="305" x2="2200" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3570" y1="305" x2="3500" y2="185" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="970" y1="305" x2="1400" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2270" y1="305" x2="2700" y2="135" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3570" y1="305" x2="3900" y2=
+                  "174.53488372093022" stroke="#aaa" stroke-width="2"
+                stroke-dasharray="5,3" stroke-linecap="round"></line>
+          <line x1="970" y1="305" x2="1000" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="2270" y1="305" x2="2300" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line>
+          <line x1="3570" y1="305" x2="3600" y2="385" stroke="#aaa"
+                stroke-width="2" stroke-linecap="round"></line></svg>
+        <div class="city blue" style="left: 260px; top: 225px;">
+          <div class="dot" title="Houston"></div>
+          <div class="city-label">
+            Houston
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 1560px; top: 225px;">
+          <div class="dot" title="Houston"></div>
+          <div class="city-label">
+            Houston
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 2860px; top: 225px;">
+          <div class="dot" title="Houston"></div>
+          <div class="city-label">
+            Houston
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 230px; top: 105px;">
+          <div class="dot" title="Chicago"></div>
+          <div class="city-label">
+            Chicago
+          </div>
+        </div>
+        <div class="city blue" style="left: 1530px; top: 105px;">
+          <div class="dot" title="Chicago"></div>
+          <div class="city-label">
+            Chicago
+          </div>
+        </div>
+        <div class="city blue" style="left: 2830px; top: 105px;">
+          <div class="dot" title="Chicago"></div>
+          <div class="city-label">
+            Chicago
+          </div>
+        </div>
+        <div class="city blue" style="left: 290px; top: 95px;">
+          <div class="dot" title="Montreal"></div>
+          <div class="city-label">
+            Montreal
+          </div>
+        </div>
+        <div class="city blue" style="left: 1590px; top: 95px;">
+          <div class="dot" title="Montreal"></div>
+          <div class="city-label">
+            Montreal
+          </div>
+        </div>
+        <div class="city blue" style="left: 2890px; top: 95px;">
+          <div class="dot" title="Montreal"></div>
+          <div class="city-label">
+            Montreal
+          </div>
+        </div>
+        <div class="city blue" style="left: 350px; top: 115px;">
+          <div class="dot" title="New York"></div>
+          <div class="city-label">
+            New&nbsp;York
+          </div>
+        </div>
+        <div class="city blue" style="left: 1650px; top: 115px;">
+          <div class="dot" title="New York"></div>
+          <div class="city-label">
+            New&nbsp;York
+          </div>
+        </div>
+        <div class="city blue" style="left: 2950px; top: 115px;">
+          <div class="dot" title="New York"></div>
+          <div class="city-label">
+            New&nbsp;York
+          </div>
+        </div>
+        <div class="city blue" style="left: 340px; top: 195px;">
+          <div class="dot" title="Washington"></div>
+          <div class="city-label">
+            Washington
+          </div>
+        </div>
+        <div class="city blue" style="left: 1640px; top: 195px;">
+          <div class="dot" title="Washington"></div>
+          <div class="city-label">
+            Washington
+          </div>
+        </div>
+        <div class="city blue" style="left: 2940px; top: 195px;">
+          <div class="dot" title="Washington"></div>
+          <div class="city-label">
+            Washington
+          </div>
+        </div>
+        <div class="city blue" style="left: 490px; top: 75px;">
+          <div class="dot" title="London"></div>
+          <div class="city-label">
+            London
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 1790px; top: 75px;">
+          <div class="dot" title="London"></div>
+          <div class="city-label">
+            London
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 3090px; top: 75px;">
+          <div class="dot" title="London"></div>
+          <div class="city-label">
+            London
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue has-station" style="left: 460px; top: 135px;">
+          <div class="dot" title="Barcelona"></div>
+          <div class="city-label">
+            Barcelona
+          </div>
+          <div class="pawns">
+            <div class="pawn operations-expert">
+              ♟
+            </div>
+            <div class="pawn researcher">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city blue has-station" style="left: 1760px; top: 135px;">
+          <div class="dot" title="Barcelona"></div>
+          <div class="city-label">
+            Barcelona
+          </div>
+          <div class="pawns">
+            <div class="pawn operations-expert">
+              ♟
+            </div>
+            <div class="pawn researcher">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city blue has-station" style="left: 3060px; top: 135px;">
+          <div class="dot" title="Barcelona"></div>
+          <div class="city-label">
+            Barcelona
+          </div>
+          <div class="pawns">
+            <div class="pawn operations-expert">
+              ♟
+            </div>
+            <div class="pawn researcher">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 530px; top: 105px;">
+          <div class="dot" title="Paris"></div>
+          <div class="city-label">
+            Paris
+          </div>
+        </div>
+        <div class="city blue" style="left: 1830px; top: 105px;">
+          <div class="dot" title="Paris"></div>
+          <div class="city-label">
+            Paris
+          </div>
+        </div>
+        <div class="city blue" style="left: 3130px; top: 105px;">
+          <div class="dot" title="Paris"></div>
+          <div class="city-label">
+            Paris
+          </div>
+        </div>
+        <div class="city blue" style="left: 550px; top: 25px;">
+          <div class="dot" title="Stockholm"></div>
+          <div class="city-label">
+            Stockholm
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 1850px; top: 25px;">
+          <div class="dot" title="Stockholm"></div>
+          <div class="city-label">
+            Stockholm
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 3150px; top: 25px;">
+          <div class="dot" title="Stockholm"></div>
+          <div class="city-label">
+            Stockholm
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 580px; top: 115px;">
+          <div class="dot" title="Rome"></div>
+          <div class="city-label">
+            Rome
+          </div>
+        </div>
+        <div class="city blue" style="left: 1880px; top: 115px;">
+          <div class="dot" title="Rome"></div>
+          <div class="city-label">
+            Rome
+          </div>
+        </div>
+        <div class="city blue" style="left: 3180px; top: 115px;">
+          <div class="dot" title="Rome"></div>
+          <div class="city-label">
+            Rome
+          </div>
+        </div>
+        <div class="city blue" style="left: 640px; top: 65px;">
+          <div class="dot" title="Moscow"></div>
+          <div class="city-label">
+            Moscow
+          </div>
+        </div>
+        <div class="city blue" style="left: 1940px; top: 65px;">
+          <div class="dot" title="Moscow"></div>
+          <div class="city-label">
+            Moscow
+          </div>
+        </div>
+        <div class="city blue" style="left: 3240px; top: 65px;">
+          <div class="dot" title="Moscow"></div>
+          <div class="city-label">
+            Moscow
+          </div>
+        </div>
+        <div class="city blue" style="left: 100px; top: 135px;"><div class="dot" title="San Francisco"></div>
+          <div class="city-label">
+            San&nbsp;Francisco
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 1400px; top: 135px;"><div class="dot" title="San Francisco"></div>
+          <div class="city-label">
+            San&nbsp;Francisco
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city blue" style="left: 2700px; top: 135px;"><div class="dot" title="San Francisco"></div>
+          <div class="city-label">
+            San&nbsp;Francisco
+          </div>
+          <div class="cubes">
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+            <div class="cube blue"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 150px; top: 185px;"><div class="dot" title="Los Angeles"></div>
+          <div class="city-label">
+            Los&nbsp;Angeles
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1450px; top: 185px;"><div class="dot" title="Los Angeles"></div>
+          <div class="city-label">
+            Los&nbsp;Angeles
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2750px; top: 185px;"><div class="dot" title="Los Angeles"></div>
+          <div class="city-label">
+            Los&nbsp;Angeles
+          </div>
+        </div>
+        <div class="city yellow" style="left: 200px; top: 275px;"><div class="dot" title="Mexico City"></div>
+          <div class="city-label">
+            Mexico&nbsp;City
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1500px; top: 275px;"><div class="dot" title="Mexico City"></div>
+          <div class="city-label">
+            Mexico&nbsp;City
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2800px; top: 275px;"><div class="dot" title="Mexico City"></div>
+          <div class="city-label">
+            Mexico&nbsp;City
+          </div>
+        </div>
+        <div class="city yellow" style="left: 300px; top: 275px;">
+          <div class="dot" title="Havana"></div>
+          <div class="city-label">
+            Havana
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1600px; top: 275px;">
+          <div class="dot" title="Havana"></div>
+          <div class="city-label">
+            Havana
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2900px; top: 275px;">
+          <div class="dot" title="Havana"></div>
+          <div class="city-label">
+            Havana
+          </div>
+        </div>
+        <div class="city yellow" style="left: 300px; top: 335px;"><div class="dot" title="Paramaribo"></div>
+          <div class="city-label">
+            Paramaribo
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1600px; top: 335px;"><div class="dot" title="Paramaribo"></div>
+          <div class="city-label">
+            Paramaribo
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2900px; top: 335px;"><div class="dot" title="Paramaribo"></div>
+          <div class="city-label">
+            Paramaribo
+          </div>
+        </div>
+        <div class="city yellow" style="left: 250px; top: 385px;">
+          <div class="dot" title="Lima"></div>
+          <div class="city-label">
+            Lima
+          </div>
+          <div class="cubes">
+            <div class="cube yellow"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1550px; top: 385px;">
+          <div class="dot" title="Lima"></div>
+          <div class="city-label">
+            Lima
+          </div>
+          <div class="cubes">
+            <div class="cube yellow"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2850px; top: 385px;">
+          <div class="dot" title="Lima"></div>
+          <div class="city-label">
+            Lima
+          </div>
+          <div class="cubes">
+            <div class="cube yellow"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 270px; top: 435px;">
+          <div class="dot" title="Santiago"></div>
+          <div class="city-label">
+            Santiago
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1570px; top: 435px;">
+          <div class="dot" title="Santiago"></div>
+          <div class="city-label">
+            Santiago
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2870px; top: 435px;">
+          <div class="dot" title="Santiago"></div>
+          <div class="city-label">
+            Santiago
+          </div>
+        </div>
+        <div class="city yellow" style="left: 350px; top: 435px;"><div class="dot" title="Buenos Aires"></div>
+          <div class="city-label">
+            Buenos&nbsp;Aires
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1650px; top: 435px;"><div class="dot" title="Buenos Aires"></div>
+          <div class="city-label">
+            Buenos&nbsp;Aires
+          </div>
+        </div>
+        <div class="city yellow" style="left: 2950px; top: 435px;"><div class="dot" title="Buenos Aires"></div>
+          <div class="city-label">
+            Buenos&nbsp;Aires
+          </div>
+        </div>
+        <div class="city yellow" style="left: 400px; top: 385px;"><div class="dot" title="Sao Paulo"></div>
+          <div class="city-label">
+            Sao&nbsp;Paulo
+          </div>
+          <div class="cubes">
+            <div class="cube yellow"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1700px; top: 385px;"><div class="dot" title="Sao Paulo"></div>
+          <div class="city-label">
+            Sao&nbsp;Paulo
+          </div>
+          <div class="cubes">
+            <div class="cube yellow"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 3000px; top: 385px;"><div class="dot" title="Sao Paulo"></div>
+          <div class="city-label">
+            Sao&nbsp;Paulo
+          </div>
+          <div class="cubes">
+            <div class="cube yellow"></div>
+          </div>
+        </div>
+        <div class="city yellow" style="left: 500px; top: 335px;">
+          <div class="dot" title="Lagos"></div>
+          <div class="city-label">
+            Lagos
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1800px; top: 335px;">
+          <div class="dot" title="Lagos"></div>
+          <div class="city-label">
+            Lagos
+          </div>
+        </div>
+        <div class="city yellow" style="left: 3100px; top: 335px;">
+          <div class="dot" title="Lagos"></div>
+          <div class="city-label">
+            Lagos
+          </div>
+        </div>
+        <div class="city yellow" style="left: 600px; top: 335px;">
+          <div class="dot" title="Nairobi"></div>
+          <div class="city-label">
+            Nairobi
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1900px; top: 335px;">
+          <div class="dot" title="Nairobi"></div>
+          <div class="city-label">
+            Nairobi
+          </div>
+        </div>
+        <div class="city yellow" style="left: 3200px; top: 335px;">
+          <div class="dot" title="Nairobi"></div>
+          <div class="city-label">
+            Nairobi
+          </div>
+        </div>
+        <div class="city yellow" style="left: 530px; top: 415px;">
+          <div class="dot" title="Kinshasa"></div>
+          <div class="city-label">
+            Kinshasa
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1830px; top: 415px;">
+          <div class="dot" title="Kinshasa"></div>
+          <div class="city-label">
+            Kinshasa
+          </div>
+        </div>
+        <div class="city yellow" style="left: 3130px; top: 415px;">
+          <div class="dot" title="Kinshasa"></div>
+          <div class="city-label">
+            Kinshasa
+          </div>
+        </div>
+        <div class="city yellow" style="left: 600px; top: 465px;"><div class="dot" title="Cape Town"></div>
+          <div class="city-label">
+            Cape&nbsp;Town
+          </div>
+        </div>
+        <div class="city yellow" style="left: 1900px; top: 465px;"><div class="dot" title="Cape Town"></div>
+          <div class="city-label">
+            Cape&nbsp;Town
+          </div>
+        </div>
+        <div class="city yellow" style="left: 3200px; top: 465px;"><div class="dot" title="Cape Town"></div>
+          <div class="city-label">
+            Cape&nbsp;Town
+          </div>
+        </div>
+        <div class="city black" style="left: 500px; top: 185px;"><div class="dot" title="Casablanca"></div>
+          <div class="city-label">
+            Casablanca
+          </div>
+        </div>
+        <div class="city black" style="left: 1800px; top: 185px;"><div class="dot" title="Casablanca"></div>
+          <div class="city-label">
+            Casablanca
+          </div>
+        </div>
+        <div class="city black" style="left: 3100px; top: 185px;"><div class="dot" title="Casablanca"></div>
+          <div class="city-label">
+            Casablanca
+          </div>
+        </div>
+        <div class="city black" style="left: 600px; top: 165px;">
+          <div class="dot" title="Istanbul"></div>
+          <div class="city-label">
+            Istanbul
+          </div>
+        </div>
+        <div class="city black" style="left: 1900px; top: 165px;">
+          <div class="dot" title="Istanbul"></div>
+          <div class="city-label">
+            Istanbul
+          </div>
+        </div>
+        <div class="city black" style="left: 3200px; top: 165px;">
+          <div class="dot" title="Istanbul"></div>
+          <div class="city-label">
+            Istanbul
+          </div>
+        </div>
+        <div class="city black" style="left: 600px; top: 235px;">
+          <div class="dot" title="Cairo"></div>
+          <div class="city-label">
+            Cairo
+          </div>
+        </div>
+        <div class="city black" style="left: 1900px; top: 235px;">
+          <div class="dot" title="Cairo"></div>
+          <div class="city-label">
+            Cairo
+          </div>
+        </div>
+        <div class="city black" style="left: 3200px; top: 235px;">
+          <div class="dot" title="Cairo"></div>
+          <div class="city-label">
+            Cairo
+          </div>
+        </div>
+        <div class="city black" style="left: 650px; top: 125px;">
+          <div class="dot" title="Kyiv"></div>
+          <div class="city-label">
+            Kyiv
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 1950px; top: 125px;">
+          <div class="dot" title="Kyiv"></div>
+          <div class="city-label">
+            Kyiv
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 3250px; top: 125px;">
+          <div class="dot" title="Kyiv"></div>
+          <div class="city-label">
+            Kyiv
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 650px; top: 185px;">
+          <div class="dot" title="Baghdad"></div>
+          <div class="city-label">
+            Baghdad
+          </div>
+        </div>
+        <div class="city black" style="left: 1950px; top: 185px;">
+          <div class="dot" title="Baghdad"></div>
+          <div class="city-label">
+            Baghdad
+          </div>
+        </div>
+        <div class="city black" style="left: 3250px; top: 185px;">
+          <div class="dot" title="Baghdad"></div>
+          <div class="city-label">
+            Baghdad
+          </div>
+        </div>
+        <div class="city black" style="left: 650px; top: 285px;">
+          <div class="dot" title="Riyadh"></div>
+          <div class="city-label">
+            Riyadh
+          </div>
+        </div>
+        <div class="city black" style="left: 1950px; top: 285px;">
+          <div class="dot" title="Riyadh"></div>
+          <div class="city-label">
+            Riyadh
+          </div>
+        </div>
+        <div class="city black" style="left: 3250px; top: 285px;">
+          <div class="dot" title="Riyadh"></div>
+          <div class="city-label">
+            Riyadh
+          </div>
+        </div>
+        <div class="city black" style="left: 700px; top: 135px;">
+          <div class="dot" title="Tehran"></div>
+          <div class="city-label">
+            Tehran
+          </div>
+        </div>
+        <div class="city black" style="left: 2000px; top: 135px;">
+          <div class="dot" title="Tehran"></div>
+          <div class="city-label">
+            Tehran
+          </div>
+        </div>
+        <div class="city black" style="left: 3300px; top: 135px;">
+          <div class="dot" title="Tehran"></div>
+          <div class="city-label">
+            Tehran
+          </div>
+        </div>
+        <div class="city black" style="left: 700px; top: 235px;">
+          <div class="dot" title="Kabul"></div>
+          <div class="city-label">
+            Kabul
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 2000px; top: 235px;">
+          <div class="dot" title="Kabul"></div>
+          <div class="city-label">
+            Kabul
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 3300px; top: 235px;">
+          <div class="dot" title="Kabul"></div>
+          <div class="city-label">
+            Kabul
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 750px; top: 185px;">
+          <div class="dot" title="Delhi"></div>
+          <div class="city-label">
+            Delhi
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 2050px; top: 185px;">
+          <div class="dot" title="Delhi"></div>
+          <div class="city-label">
+            Delhi
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 3350px; top: 185px;">
+          <div class="dot" title="Delhi"></div>
+          <div class="city-label">
+            Delhi
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 750px; top: 285px;">
+          <div class="dot" title="Mumbai"></div>
+          <div class="city-label">
+            Mumbai
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 2050px; top: 285px;">
+          <div class="dot" title="Mumbai"></div>
+          <div class="city-label">
+            Mumbai
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 3350px; top: 285px;">
+          <div class="dot" title="Mumbai"></div>
+          <div class="city-label">
+            Mumbai
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 800px; top: 335px;">
+          <div class="dot" title="Chennai"></div>
+          <div class="city-label">
+            Chennai
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 2100px; top: 335px;">
+          <div class="dot" title="Chennai"></div>
+          <div class="city-label">
+            Chennai
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 3400px; top: 335px;">
+          <div class="dot" title="Chennai"></div>
+          <div class="city-label">
+            Chennai
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 800px; top: 185px;">
+          <div class="dot" title="Kolkata"></div>
+          <div class="city-label">
+            Kolkata
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 2100px; top: 185px;">
+          <div class="dot" title="Kolkata"></div>
+          <div class="city-label">
+            Kolkata
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city black" style="left: 3400px; top: 185px;">
+          <div class="dot" title="Kolkata"></div>
+          <div class="city-label">
+            Kolkata
+          </div>
+          <div class="cubes">
+            <div class="cube black"></div>
+            <div class="cube black"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 850px; top: 235px;">
+          <div class="dot" title="Bangkok"></div>
+          <div class="city-label">
+            Bangkok
+          </div>
+        </div>
+        <div class="city red" style="left: 2150px; top: 235px;">
+          <div class="dot" title="Bangkok"></div>
+          <div class="city-label">
+            Bangkok
+          </div>
+        </div>
+        <div class="city red" style="left: 3450px; top: 235px;">
+          <div class="dot" title="Bangkok"></div>
+          <div class="city-label">
+            Bangkok
+          </div>
+        </div>
+        <div class="city red" style="left: 870px; top: 335px;">
+          <div class="dot" title="Jakarta"></div>
+          <div class="city-label">
+            Jakarta
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+          <div class="pawns">
+            <div class="pawn contingency-planner">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city red" style="left: 2170px; top: 335px;">
+          <div class="dot" title="Jakarta"></div>
+          <div class="city-label">
+            Jakarta
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+          <div class="pawns">
+            <div class="pawn contingency-planner">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city red" style="left: 3470px; top: 335px;">
+          <div class="dot" title="Jakarta"></div>
+          <div class="city-label">
+            Jakarta
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+          <div class="pawns">
+            <div class="pawn contingency-planner">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city red" style="left: 900px; top: 285px;">
+          <div class="dot" title="Hong Kong"></div>
+          <div class="city-label">
+            Hong&nbsp;Kong
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+          <div class="pawns">
+            <div class="pawn dispatcher">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city red" style="left: 2200px; top: 285px;">
+          <div class="dot" title="Hong Kong"></div>
+          <div class="city-label">
+            Hong&nbsp;Kong
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+          <div class="pawns">
+            <div class="pawn dispatcher">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city red" style="left: 3500px; top: 285px;">
+          <div class="dot" title="Hong Kong"></div>
+          <div class="city-label">
+            Hong&nbsp;Kong
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+          <div class="pawns">
+            <div class="pawn dispatcher">
+              ♟
+            </div>
+          </div>
+        </div>
+        <div class="city red has-station" style="left: 900px; top: 185px;"><div class="dot" title="Wuhan"></div>
+          <div class="city-label">
+            Wuhan
+          </div>
+        </div>
+        <div class="city red has-station" style="left: 2200px; top: 185px;"><div class="dot" title="Wuhan"></div>
+          <div class="city-label">
+            Wuhan
+          </div>
+        </div>
+        <div class="city red has-station" style="left: 3500px; top: 185px;"><div class="dot" title="Wuhan"></div>
+          <div class="city-label">
+            Wuhan
+          </div>
+        </div>
+        <div class="city red" style="left: 950px; top: 135px;">
+          <div class="dot" title="Shanghai"></div>
+          <div class="city-label">
+            Shanghai
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 2250px; top: 135px;">
+          <div class="dot" title="Shanghai"></div>
+          <div class="city-label">
+            Shanghai
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 3550px; top: 135px;">
+          <div class="dot" title="Shanghai"></div>
+          <div class="city-label">
+            Shanghai
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 950px; top: 85px;">
+          <div class="dot" title="Beijing"></div>
+          <div class="city-label">
+            Beijing
+          </div>
+        </div>
+        <div class="city red" style="left: 2250px; top: 85px;">
+          <div class="dot" title="Beijing"></div>
+          <div class="city-label">
+            Beijing
+          </div>
+        </div>
+        <div class="city red" style="left: 3550px; top: 85px;">
+          <div class="dot" title="Beijing"></div>
+          <div class="city-label">
+            Beijing
+          </div>
+        </div>
+        <div class="city red" style="left: 1000px; top: 85px;">
+          <div class="dot" title="Seoul"></div>
+          <div class="city-label">
+            Seoul
+          </div>
+        </div>
+        <div class="city red" style="left: 2300px; top: 85px;">
+          <div class="dot" title="Seoul"></div>
+          <div class="city-label">
+            Seoul
+          </div>
+        </div>
+        <div class="city red" style="left: 3600px; top: 85px;">
+          <div class="dot" title="Seoul"></div>
+          <div class="city-label">
+            Seoul
+          </div>
+        </div>
+        <div class="city red" style="left: 1050px; top: 135px;">
+          <div class="dot" title="Tokyo"></div>
+          <div class="city-label">
+            Tokyo
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 2350px; top: 135px;">
+          <div class="dot" title="Tokyo"></div>
+          <div class="city-label">
+            Tokyo
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 3650px; top: 135px;">
+          <div class="dot" title="Tokyo"></div>
+          <div class="city-label">
+            Tokyo
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 1050px; top: 185px;">
+          <div class="dot" title="Kyoto"></div>
+          <div class="city-label">
+            Kyoto
+          </div>
+        </div>
+        <div class="city red" style="left: 2350px; top: 185px;">
+          <div class="dot" title="Kyoto"></div>
+          <div class="city-label">
+            Kyoto
+          </div>
+        </div>
+        <div class="city red" style="left: 3650px; top: 185px;">
+          <div class="dot" title="Kyoto"></div>
+          <div class="city-label">
+            Kyoto
+          </div>
+        </div>
+        <div class="city red" style="left: 1000px; top: 235px;">
+          <div class="dot" title="Taipei"></div>
+          <div class="city-label">
+            Taipei
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 2300px; top: 235px;">
+          <div class="dot" title="Taipei"></div>
+          <div class="city-label">
+            Taipei
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 3600px; top: 235px;">
+          <div class="dot" title="Taipei"></div>
+          <div class="city-label">
+            Taipei
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 970px; top: 305px;">
+          <div class="dot" title="Manila"></div>
+          <div class="city-label">
+            Manila
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 2270px; top: 305px;">
+          <div class="dot" title="Manila"></div>
+          <div class="city-label">
+            Manila
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red" style="left: 3570px; top: 305px;">
+          <div class="dot" title="Manila"></div>
+          <div class="city-label">
+            Manila
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red has-station" style="left: 1000px; top: 385px;"><div class="dot" title="Sydney"></div>
+          <div class="city-label">
+            Sydney
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red has-station" style="left: 2300px; top: 385px;"><div class="dot" title="Sydney"></div>
+          <div class="city-label">
+            Sydney
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+        </div>
+        <div class="city red has-station" style="left: 3600px; top: 385px;"><div class="dot" title="Sydney"></div>
+          <div class="city-label">
+            Sydney
+          </div>
+          <div class="cubes">
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+            <div class="cube red"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="current-player">
+  <div class="current-player-pawn researcher" id=
+          "current-player-pawn"></div>
+  <div class="current-player-label" id="current-player-label">
+    Researcher
+  </div>
+</div><!-- Touch-Friendly Action Buttons -->
+<div class="action-buttons">
+  <button id="move-btn" class="action-btn move"><i></i>
+    <span>Move</span></button> <button id="treat-btn" class=
+        "action-btn treat"><i></i> <span>Treat Disease</span></button>
+  <button id="share-btn" class="action-btn share"><i></i>
+    <span>Share Card</span></button>
+  <div class="player-hand-container">
+    <div class="player-hand">
+      <div class="hand-card city-card black" title="City: Cairo">
+        <span class="card-name">Cairo</span>
+      </div>
+      <div class="hand-card city-card yellow" title=
+              "City: Cape Town">
+        <span class="card-name">Cape Town</span>
+      </div>
+      <div class="hand-card city-card yellow" title=
+              "City: Santiago">
+        <span class="card-name">Santiago</span>
+      </div>
+    </div>
+  </div><button id="cure-btn" class="action-btn cure"><i></i>
+  <span>Find Cure</span></button> <button id="build-btn" class=
+        "action-btn build"><i></i> <span>Build Station</span></button>
+  <button id="pass-btn" class="action-btn pass"><i></i> <span>End
+    Turn</span></button>
+  <div id="action-cards-btn" class="action-btn action-cards special-action"
+       style=
+               "display: inline-flex;">
+    <div class="card-header">
+      EVENT
+    </div><i></i> <span>View Actions</span>
+  </div>
+</div>
+<div class="game-over-overlay">
+  <div class="game-over-modal">
+    <h1 class="game-over-title">Game Over</h1>
+    <h2 class="game-over-subtitle">The pandemic has overwhelmed
+      humanity</h2>
+    <div class="game-over-reason"></div>
+    <div class="animation-container"></div>
+    <div class="game-over-stats">
+      <div class="stat-item">
+        <div class="stat-value" id="turns-stat">
+          0
+        </div>
+        <div class="stat-label">
+          Turns
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="outbreaks-stat">
+          0
+        </div>
+        <div class="stat-label">
+          Outbreaks
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="cures-stat">
+          0
+        </div>
+        <div class="stat-label">
+          Cures Discovered
+        </div>
+      </div>
+    </div>
+    <div class="game-over-buttons">
+      <button class="game-over-button restart-button">Restart
+        Game</button> <button class=
+                                      "game-over-button menu-button">Main Menu</button>
+    </div>
+  </div>
+</div>
+<div class="player-panel" data-component="panel">
+  <div class="player-panel-header" data-text-content="panel.speed">
+    Players
+  </div>
+  <!-- There exists a list called player-hands and the current element has one child per item
+        -->
+  <div class="player-list" data-collection="player:root.players">
+    <!-- If the item has no type property, use the default template -->
+    <div class="player-item" data-collection-item="default">
+      <div class="player-header">
+        <div class="player-pawn operations_expert" data-attribute-name="class" data-attribute-value="player-pawn ${player.roleCode}"></div>
+        <div class="player-name" data-text-content="player.roleName">
+          Operations Expert
+        </div>
+        <div class="current-player-indicator"></div>
+      </div>
+      <div class="player-hand-preview" data-collection="player-hands">
+        <div class="hand-card-preview blue" data-collection-item="default" data-text-content="city">
+          Chicago
+        </div>
+        <div class="hand-card-preview red">
+          Jakarta
+        </div>
+        <div class="hand-card-preview red">
+          Taipei
+        </div>
+        <div class="hand-card-preview red">
+          Manila
+        </div>
+      </div>
+    </div>
+    <div class="player-item current">
+      <div class="player-header">
+        <div class="player-pawn researcher"></div>
+        <div class="player-name">
+          Researcher
+        </div>
+        <div class="current-player-indicator"></div>
+      </div>
+      <div class="player-hand-preview">
+        <div class="hand-card-preview black">
+          Cairo
+        </div>
+        <div class="hand-card-preview yellow">
+          Cape Town
+        </div>
+        <div class="hand-card-preview yellow">
+          Santiago
+        </div>
+      </div>
+    </div>
+    <div class="player-item">
+      <div class="player-header">
+        <div class="player-pawn contingency_planner"></div>
+        <div class="player-name">
+          Contingency Planner
+        </div>
+        <div class="current-player-indicator"></div>
+      </div>
+      <div class="player-hand-preview">
+        <div class="hand-card-preview red">
+          Bangkok
+        </div>
+        <div class="hand-card-preview red">
+          Wuhan
+        </div>
+        <div class="hand-card-preview yellow">
+          Lima
+        </div>
+        <div class="hand-card-preview event">
+          Airlift
+        </div>
+      </div>
+    </div>
+    <div class="player-item">
+      <div class="player-header">
+        <div class="player-pawn dispatcher"></div>
+        <div class="player-name">
+          Dispatcher
+        </div>
+        <div class="current-player-indicator"></div>
+      </div>
+      <div class="player-hand-preview">
+        <div class="hand-card-preview black">
+          Kolkata
+        </div>
+        <div class="hand-card-preview black">
+          Kyiv
+        </div>
+        <div class="hand-card-preview red">
+          Sydney
+        </div>
+        <div class="hand-card-preview yellow">
+          Los Angeles
+        </div>
+        <div class="hand-card-preview yellow">
+          Havana
+        </div>
+        <div class="hand-card-preview yellow">
+          Lagos
+        </div>
+      </div>
+    </div>
+  </div>
+</div><button class="player-panel-toggle" aria-label=
+        "Toggle player panel" aria-expanded=
+                      "true"><span>Players</span></button>
+</body>
+</html>
