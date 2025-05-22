@@ -39,7 +39,7 @@
   <script type="module" src="http://localhost:4567/js/player_panel.js"></script>
   <script type="module" src="http://localhost:4567/js/scrolling.js"></script>
 </head>
-<body data-component="root: Pandemic">
+<body data-component="root">
 <div class="game-header">
   <div class="logo-container">
     <h1>PANDEMIC</h1>
@@ -1853,9 +1853,9 @@
   </div>
   <!-- There exists a list called player-hands and the current element has one child per item
         -->
-  <div class="player-list" data-collection="player:root.players">
+  <div class="player-list" data-collection="root.players">
     <!-- If the item has no type property, use the default template -->
-    <div class="player-item" data-collection-item="default">
+    <div class="player-item" data-collection-item="player">
       <div class="player-header">
         <div class="player-pawn operations_expert" data-attribute-name="class" data-attribute-value="player-pawn ${player.roleCode}"></div>
         <div class="player-name" data-text-content="player.roleName">
@@ -1863,8 +1863,8 @@
         </div>
         <div class="current-player-indicator"></div>
       </div>
-      <div class="player-hand-preview" data-collection="player-hands">
-        <div class="hand-card-preview blue" data-collection-item="default" data-text-content="city">
+      <div class="player-hand-preview" data-collection="player.player-hands">
+        <div class="hand-card-preview blue" data-collection-item="hand" data-text-content="city">
           Chicago
         </div>
         <div class="hand-card-preview red">

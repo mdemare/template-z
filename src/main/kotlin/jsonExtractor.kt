@@ -54,13 +54,50 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
     for (child in element.children()) {
         val componentName = child.attr("data-component")
         val textContentAttr = child.attr("data-text-content")
+        val collectionAttr = child.attr("data-collection")
 
         // Handle data-text-content attribute
         if (textContentAttr.isNotEmpty()) {
             parseAndAddTextContent(textContentAttr, ancestorStack)
         }
 
-        if (componentName.isNotEmpty()) {
+        // Handle data-collection attribute
+        if (collectionAttr.isNotEmpty()) {
+            parseAndAddTextContent(collectionAttr, ancestorStack)
+
+            // Find first child with data-collection-item
+            val collectionItem = child.children().firstOrNull { it.hasAttr("data-collection-item") }
+            if (collectionItem != null) {
+                val collectionItemName = collectionItem.attr("data-collection-item")
+
+                if (collectionItemName.isNotEmpty()) {
+                    // Treat this as a component definition
+                    if (!currentValue.has("components")) {
+                        currentValue.put("components", JSONObject())
+                    }
+
+                    val componentsObject = currentValue.getJSONObject("components")
+                    val collectionItemObject = JSONObject()
+                    componentsObject.put(collectionItemName, collectionItemObject)
+
+                    // Add this collection item to ancestor stack
+                    ancestorStack.add(Pair(collectionItemName, collectionItemObject))
+
+                    // Process the collection item's children
+                    processChildren(collectionItem, collectionItemObject, ancestorStack)
+
+                    // Remove from ancestor stack when done processing
+                    ancestorStack.removeAt(ancestorStack.size - 1)
+                }
+            }
+
+            // Continue processing other children (but ignore other data-collection-item elements)
+            for (otherChild in child.children()) {
+                if (!otherChild.hasAttr("data-collection-item")) {
+                    processChildren(otherChild, currentValue, ancestorStack)
+                }
+            }
+        } else if (componentName.isNotEmpty()) {
             // Found another data-component
             if (!currentValue.has("components")) {
                 currentValue.put("components", JSONObject())
@@ -79,7 +116,7 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
             // Remove from ancestor stack when done processing
             ancestorStack.removeAt(ancestorStack.size - 1)
         } else {
-            // No data-component, continue searching in children
+            // No data-component or data-collection, continue searching in children
             processChildren(child, currentValue, ancestorStack)
         }
     }
