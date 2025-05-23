@@ -1,5 +1,6 @@
 package nl.mdemare
 
+import kotlinx.serialization.Serializable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -8,9 +9,13 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
+@Serializable
 data class PlayerHand(val color: String)
+@Serializable
 data class Player(val roleName: String, val playerHands: List<PlayerHand>)
+@Serializable
 data class Panel(val speed: String)
+@Serializable
 data class Root(val players: List<Player>, val panel: Panel)
 
 fun renderHtml(htmlFile: File, rootData: Any): String {
