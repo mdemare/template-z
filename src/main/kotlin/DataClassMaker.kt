@@ -1,6 +1,5 @@
 package nl.mdemare
 
-
 import org.json.JSONObject
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -82,7 +81,7 @@ fun mapJsonTypeToKotlinType(jsonType: String, propertyName: String): TypeName {
     return when {
         jsonType == "string" -> STRING
         jsonType == "array" -> {
-            val elementType = inferArrayElementType(propertyName)
+            val elementType = ANY
             LIST.parameterizedBy(elementType)
         }
         jsonType == "boolean" -> BOOLEAN
@@ -91,15 +90,6 @@ fun mapJsonTypeToKotlinType(jsonType: String, propertyName: String): TypeName {
             // Custom type - capitalize first letter
             ClassName("", jsonType.replaceFirstChar { it.uppercase() })
         }
-    }
-}
-
-fun inferArrayElementType(propertyName: String): TypeName {
-    return when {
-        propertyName.contains("player", ignoreCase = true) -> ClassName("", "Player")
-        propertyName.contains("hand", ignoreCase = true) -> ClassName("", "Hand")
-        propertyName.contains("panel", ignoreCase = true) -> ClassName("", "Panel")
-        else -> ANY
     }
 }
 
@@ -152,11 +142,11 @@ fun generateDataClassSimple(
             val propName = property.getString("name")
             val propType = property.getString("type")
 
-            val kotlinType = when {
-                propType == "string" -> "String"
-                propType == "array" -> "List<${inferArrayElementTypeSimple(propName)}>"
-                propType == "boolean" -> "Boolean"
-                propType == "number" -> "Int"
+            val kotlinType = when (propType) {
+                "string" -> "String"
+                "array" -> "List<ANY>"
+                "boolean" -> "Boolean"
+                "number" -> "Int"
                 else -> propType.replaceFirstChar { it.uppercase() }
             }
 
@@ -165,68 +155,40 @@ fun generateDataClassSimple(
     }
 
     val dataClass = if (properties.isEmpty()) {
-        "data class $className()"
+        "@Serializable\ndata class $className()"
     } else {
-        "data class $className(${properties.joinToString(", ")})"
+        "@Serializable\ndata class $className(${properties.joinToString(", ")})"
     }
 
     generatedClasses.add(dataClass)
     processedClasses.add(className)
 }
 
-fun inferArrayElementTypeSimple(propertyName: String): String {
-    return when {
-        propertyName.contains("player", ignoreCase = true) -> "Player"
-        propertyName.contains("hand", ignoreCase = true) -> "Hand"
-        propertyName.contains("panel", ignoreCase = true) -> "Panel"
-        else -> "Any"
-    }
-}
-
 // Example usage
 fun main() {
     val jsonInput = """
+{"root": {"properties": [
     {
-        "root": {
-            "components": {
-                "panel": {
-                    "components": {
-                        "player": {
-                            "components": {
-                                "playerHand": {}
-                            },
-                            "properties": [
-                                {
-                                    "name": "roleName",
-                                    "type": "string"
-                                },
-                                {
-                                    "name": "playerHands",
-                                    "type": "array"
-                                }
-                            ]
-                        }
-                    },
-                    "properties": [
-                        {
-                            "name": "speed",
-                            "type": "string"
-                        }
-                    ]
-                }
-            },
-            "properties": [
-                {
-                    "name": "players",
-                    "type": "array"
-                },
-                {
-                    "name": "panel",
-                    "type": "Panel"
-                }
-            ]
-        }
+        "name": "actionsRemaining",
+        "type": "string"
+    },
+    {
+        "name": "turn",
+        "type": "string"
+    },
+    {
+        "name": "outbreaks",
+        "type": "string"
+    },
+    {
+        "name": "playerCards",
+        "type": "string"
+    },
+    {
+        "name": "currentPlayerRole",
+        "type": "string"
     }
+]}}
     """.trimIndent()
 
     println("=== Using KotlinPoet ===")

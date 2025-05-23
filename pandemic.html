@@ -1505,15 +1505,15 @@
 
 <div class="player-panel">
     <div class="player-panel-header">Players</div>
-    <div class="player-list">
-        <div class="player-item">
+    <div class="player-list" data-collection="root.players">
+        <div class="player-item" data-collection-item="player">
             <div class="player-header">
                 <div class="player-pawn quarantine_specialist"></div>
-                <div class="player-name">Quarantine Specialist</div>
+                <div class="player-name" data-text-content="player.roleName">Quarantine Specialist</div>
                 <div class="current-player-indicator"></div>
             </div>
-            <div class="player-hand-preview">
-                <div class="hand-card-preview black">Tehran</div>
+            <div class="player-hand-preview" data-collection="player.cards">
+                <div class="hand-card-preview black" data-collection-item="card" data-text-content="card.name">Tehran</div>
                 <div class="hand-card-preview black">Kolkata</div>
                 <div class="hand-card-preview blue">Houston</div>
                 <div class="hand-card-preview red">Tokyo</div>

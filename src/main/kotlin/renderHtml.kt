@@ -10,13 +10,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 @Serializable
-data class PlayerHand(val color: String)
-@Serializable
-data class Player(val roleName: String, val playerHands: List<PlayerHand>)
-@Serializable
-data class Panel(val speed: String)
-@Serializable
-data class Root(val players: List<Player>, val panel: Panel)
+data class Root(val actionsRemaining: String, val turn: String, val outbreaks: String, val playerCards: String, val currentPlayerRole: String)
 
 fun renderHtml(htmlFile: File, rootData: Any): String {
     // Parse the HTML file
@@ -255,35 +249,5 @@ private fun getPropertyValue(obj: Any, propertyName: String): Any? {
     } catch (e: Exception) {
         println("Error accessing property $propertyName: ${e.message}")
         null
-    }
-}
-
-// Example usage
-fun main() {
-    // Sample data
-    val playerHands = listOf(PlayerHand("red"), PlayerHand("blue"))
-    val players = listOf(
-        Player("Warrior", playerHands),
-        Player("Mage", playerHands)
-    )
-    val panel = Panel("Fast")
-    val rootData = Root(players, panel)
-
-    // Render HTML
-    val htmlFile = File("game.html")
-    if (htmlFile.exists()) {
-        try {
-            val renderedHtml = renderHtml(htmlFile, rootData)
-            println("Rendered HTML:")
-            println(renderedHtml)
-
-            // Optionally save to file
-            File("rendered_game.html").writeText(renderedHtml)
-        } catch (e: Exception) {
-            println("Error rendering HTML: ${e.message}")
-            e.printStackTrace()
-        }
-    } else {
-        println("HTML file not found: ${htmlFile.path}")
     }
 }

@@ -168,7 +168,7 @@ private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair
 }
 
 fun main() {
-    val htmlFile = File("game.html")
+    val htmlFile = File("pandemic.html")
 
     try {
         val result = jsonExtractor(htmlFile)
