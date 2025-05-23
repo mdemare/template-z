@@ -6,11 +6,8 @@ import org.jsoup.nodes.Element
 import java.io.File
 
 fun jsonExtractor(htmlFile: File): JSONObject? {
-    // Parse the HTML file
-    val doc: Document = Jsoup.parse(htmlFile, "UTF-8")
-
     // Start recursive processing from the document body
-    return processElementRecursively(doc.body())
+    return processElementRecursively(Jsoup.parse(htmlFile, "UTF-8").body())
 }
 
 private fun processElementRecursively(element: Element?): JSONObject? {
@@ -52,9 +49,17 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
         val textContentAttr = child.attr("data-text-content")
         val collectionAttr = child.attr("data-collection")
 
-        // Handle data-text-content attribute
+        child.attributes().forEach { attribute ->
+            if (attribute.key.startsWith("data-attribute-")) {
+                println(attribute.key)
+                println(attribute.value)
+                parseAndAddProperty(attribute.value, ancestorStack)
+            }
+        }
+
+        // Handle property-containing attributes
         if (textContentAttr.isNotEmpty()) {
-            parseAndAddProperty(textContentAttr, ancestorStack, "string")
+            parseAndAddProperty(textContentAttr, ancestorStack)
         }
 
         // Handle data-collection attribute
@@ -63,26 +68,6 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
             val collectionItem = child.children().firstOrNull { it.hasAttr("data-collection-item") }
             if (collectionItem != null) {
                 val collectionItemName = collectionItem.attr("data-collection-item")
-
-
-                /*
-            "components": {
-                "cards": {
-                    "array": true,
-                    "itemName": "card",
-                    "properties": { "name": "string" }
-                }
-            },
-            "components": {
-                "array": true,
-                "containerName": "cards",
-                "card": {"properties": [{
-                    "name": "name",
-                    "type": "string"
-                }]}
-            },
-
-                 */
 
                 if (collectionItemName.isNotEmpty()) {
                     // Treat this as a component definition
@@ -102,7 +87,7 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
                     // Handle data-text-content attribute on the collection item itself
                     val collectionItemTextContent = collectionItem.attr("data-text-content")
                     if (collectionItemTextContent.isNotEmpty()) {
-                        parseAndAddProperty(collectionItemTextContent, ancestorStack, "string")
+                        parseAndAddProperty(collectionItemTextContent, ancestorStack)
                     }
 
                     // Process the collection item's children
@@ -143,12 +128,22 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
         }
     }
 }
+private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair<String, JSONObject>>) {
+    // Extract value from ${} if present
+    val processedValue = if (attributeValue.matches(Regex("\\$\\{.*}"))) {
+        // Extract content between ${ and }
+        val x = attributeValue.substring(2, attributeValue.length - 1)
+        println("X")
+        println(x)
+        x
+    } else {
+        attributeValue
+    }
 
-private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair<String, JSONObject>>, propertyType: String) {
     // Parse attribute value (expecting format like "objectName.propertyName")
-    val parts = attributeValue.split(".", limit = 2)
+    val parts = processedValue.split(".", limit = 2)
     if (parts.size != 2) {
-        println("Warning: Invalid attribute format: $attributeValue (expected format: objectName.propertyName)")
+        println("Warning: Invalid attribute format: $processedValue (expected format: objectName.propertyName)")
         return
     }
 
@@ -166,9 +161,9 @@ private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair
             }
 
             val propertiesObj = ancestorObject.getJSONObject("properties")
-            propertiesObj.put(propertyName, propertyType)
+            propertiesObj.put(propertyName, "string")
 
-            println("Added property '$propertyName' (type: $propertyType) to component '$objectName'")
+            println("Added property '$propertyName' (type: String) to component '$objectName'")
             return
         }
     }

@@ -1,11 +1,11 @@
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.formUrlEncode
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.request.*
+import io.ktor.server.http.content.*
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.time.LocalDateTime
@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter
 const val HTML_FILE_PATH = "/Users/mdemare/iCloud/proj/template-z/game.html"
 const val FORM_HTML_PATH = "/Users/mdemare/iCloud/proj/template-z/form.html"
 const val FORMS_FOLDER = "/Users/mdemare/iCloud/proj/template-z/forms"
+const val PUBLIC_FOLDER = "/Users/mdemare/iCloud/proj/template-z/public"
 
 fun main(args: Array<String>) {
     println("Running basic server...")
@@ -24,13 +25,15 @@ fun main(args: Array<String>) {
 fun runBasicServer() {
     embeddedServer(Netty, port = 3333) {
         routing {
+            staticFiles("/public", File(PUBLIC_FOLDER))
+
             post("/render") {
                 // Log the request
                 val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                 println("[$timestamp] ${call.request.httpMethod.value} ${call.request.path()}")
 
                 try {
-                    val jsonContent = if (call.request.contentType()?.match(ContentType.Application.FormUrlEncoded) == true) {
+                    val jsonContent = if (call.request.contentType().match(ContentType.Application.FormUrlEncoded)) {
                         // Handle form data
                         val parameters = call.receiveParameters()
                         parameters["jsonData"] ?: run {
