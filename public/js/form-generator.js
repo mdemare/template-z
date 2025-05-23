@@ -52,8 +52,8 @@ function parseType(typeStr) {
         return { kind: 'string' };
     }
 
-    if (typeStr.startsWith('Array<') && typeStr.endsWith('>')) {
-        const innerType = typeStr.slice(6, -1);
+    if (typeStr.startsWith('List<') && typeStr.endsWith('>')) {
+        const innerType = typeStr.slice(5, -1); // Changed from 6 to 5 (List is 4 chars + '<' = 5)
         return {
             kind: 'array',
             elementType: parseType(innerType)
