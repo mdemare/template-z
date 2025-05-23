@@ -1,5 +1,3 @@
-package nl.mdemare
-
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -66,18 +64,46 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
             if (collectionItem != null) {
                 val collectionItemName = collectionItem.attr("data-collection-item")
 
+
+                /*
+            "components": {
+                "cards": {
+                    "array": true,
+                    "itemName": "card",
+                    "properties": { "name": "string" }
+                }
+            },
+            "components": {
+                "array": true,
+                "containerName": "cards",
+                "card": {"properties": [{
+                    "name": "name",
+                    "type": "string"
+                }]}
+            },
+
+                 */
+
                 if (collectionItemName.isNotEmpty()) {
                     // Treat this as a component definition
                     if (!currentValue.has("components")) {
                         currentValue.put("components", JSONObject())
                     }
-                    currentValue.put("array", true)
                     val componentsObject = currentValue.getJSONObject("components")
                     val collectionItemObject = JSONObject()
-                    componentsObject.put(collectionItemName, collectionItemObject)
+                    val parts = collectionAttr.split(".", limit = 2)
+                    componentsObject.put(parts[1], collectionItemObject)
+                    collectionItemObject.put("itemName", collectionItemName)
+                    collectionItemObject.put("array", true)
 
                     // Add this collection item to ancestor stack
                     ancestorStack.add(Pair(collectionItemName, collectionItemObject))
+
+                    // Handle data-text-content attribute on the collection item itself
+                    val collectionItemTextContent = collectionItem.attr("data-text-content")
+                    if (collectionItemTextContent.isNotEmpty()) {
+                        parseAndAddProperty(collectionItemTextContent, ancestorStack, "string")
+                    }
 
                     // Process the collection item's children
                     processChildren(collectionItem, collectionItemObject, ancestorStack)
@@ -136,28 +162,11 @@ private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair
         if (ancestorName == objectName) {
             // Found matching ancestor, add property
             if (!ancestorObject.has("properties")) {
-                ancestorObject.put("properties", JSONArray())
+                ancestorObject.put("properties", JSONObject())
             }
 
-            val propertiesArray = ancestorObject.getJSONArray("properties")
-
-            // Check if property already exists to avoid duplicates
-            var propertyExists = false
-            for (j in 0 until propertiesArray.length()) {
-                val existingProperty = propertiesArray.getJSONObject(j)
-                if (existingProperty.getString("name") == propertyName) {
-                    propertyExists = true
-                    break
-                }
-            }
-
-            if (!propertyExists) {
-                val propertyObject = JSONObject().apply {
-                    put("name", propertyName)
-                    put("type", propertyType)
-                }
-                propertiesArray.put(propertyObject)
-            }
+            val propertiesObj = ancestorObject.getJSONObject("properties")
+            propertiesObj.put(propertyName, propertyType)
 
             println("Added property '$propertyName' (type: $propertyType) to component '$objectName'")
             return
@@ -169,11 +178,13 @@ private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair
 
 fun main() {
     val htmlFile = File("pandemic.html")
+    val outputFile = File("data.json")
 
     try {
         val result = jsonExtractor(htmlFile)
         if (result != null) {
-            println(result.toString(4))
+            outputFile.writeText(result.toString(4))
+            println("Data successfully saved to data.json")
         } else {
             println("No data-component elements found")
         }

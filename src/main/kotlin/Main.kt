@@ -1,5 +1,3 @@
-package nl.mdemare
-
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.formUrlEncode

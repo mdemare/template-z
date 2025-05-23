@@ -1,5 +1,3 @@
-package nl.mdemare
-
 import kotlinx.serialization.Serializable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -8,9 +6,6 @@ import java.io.File
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
-
-@Serializable
-data class Root(val actionsRemaining: String, val turn: String, val outbreaks: String, val playerCards: String, val currentPlayerRole: String)
 
 fun renderHtml(htmlFile: File, rootData: Any): String {
     // Parse the HTML file

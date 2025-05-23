@@ -1,199 +1,134 @@
-package nl.mdemare
-
 import org.json.JSONObject
-import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import java.io.File
+import java.io.FileWriter
 
-fun generateDataClasses(jsonString: String) {
-    val json = JSONObject(jsonString)
-    val rootComponent = json.getJSONObject("root")
+data class ClassDefinition(
+    val name: String,
+    val properties: List<Property>
+)
 
-    val fileSpec = FileSpec.builder("", "GeneratedClasses")
-    val generatedClasses = mutableSetOf<String>()
+data class Property(
+    val name: String,
+    val type: String,
+    val isList: Boolean = false
+)
 
-    generateDataClass("Root", rootComponent, fileSpec, generatedClasses)
+fun convertJsonToKotlinDataClasses(jsonString: String) {
+    val jsonObject = JSONObject(jsonString)
+    val classes = mutableListOf<ClassDefinition>()
 
-    // Print the generated code
-    println(fileSpec.build().toString())
+    // Process the JSON and extract class definitions
+    processJsonObject(jsonObject, classes)
+
+    // Write to file
+    writeDataClassesToFile(classes)
 }
 
-fun generateDataClass(
-    className: String,
-    component: JSONObject,
-    fileSpec: FileSpec.Builder,
-    generatedClasses: MutableSet<String>
-) {
-    if (generatedClasses.contains(className)) {
-        return
-    }
-
-    val dataClassBuilder = TypeSpec.classBuilder(className)
-        .addModifiers(KModifier.DATA)
-
-    val constructorBuilder = FunSpec.constructorBuilder()
-    val properties = mutableListOf<PropertySpec>()
-
-    // Process nested components first (to handle dependencies)
-    if (component.has("components")) {
-        val components = component.getJSONObject("components")
-        val componentNames = components.keys()
-
-        while (componentNames.hasNext()) {
-            val componentName = componentNames.next()
-            val nestedClassName = componentName.replaceFirstChar { it.uppercase() }
-            val nestedComponent = components.getJSONObject(componentName)
-
-            // Recursively generate nested classes
-            generateDataClass(nestedClassName, nestedComponent, fileSpec, generatedClasses)
-        }
-    }
-
-    // Process direct properties
-    if (component.has("properties")) {
-        val propertiesArray = component.getJSONArray("properties")
-
-        for (i in 0 until propertiesArray.length()) {
-            val property = propertiesArray.getJSONObject(i)
-            val propName = property.getString("name")
-            val propType = property.getString("type")
-
-            val kotlinType = mapJsonTypeToKotlinType(propType, propName)
-
-            val propertySpec = PropertySpec.builder(propName, kotlinType)
-                .initializer(propName)
-                .build()
-
-            properties.add(propertySpec)
-
-            constructorBuilder.addParameter(propName, kotlinType)
-        }
-    }
-
-    // Add constructor and properties to the class
-    dataClassBuilder.primaryConstructor(constructorBuilder.build())
-    properties.forEach { dataClassBuilder.addProperty(it) }
-
-    fileSpec.addType(dataClassBuilder.build())
-    generatedClasses.add(className)
-}
-
-fun mapJsonTypeToKotlinType(jsonType: String, propertyName: String): TypeName {
-    return when {
-        jsonType == "string" -> STRING
-        jsonType == "array" -> {
-            val elementType = ANY
-            LIST.parameterizedBy(elementType)
-        }
-        jsonType == "boolean" -> BOOLEAN
-        jsonType == "number" -> INT
-        else -> {
-            // Custom type - capitalize first letter
-            ClassName("", jsonType.replaceFirstChar { it.uppercase() })
-        }
+private fun processJsonObject(jsonObject: JSONObject, classes: MutableList<ClassDefinition>) {
+    jsonObject.keys().forEach { key ->
+        val value = jsonObject.getJSONObject(key)
+        processComponent(key, value, classes)
     }
 }
 
-// Alternative simpler function without kotlinpoet
-fun generateDataClassesSimple(jsonString: String) {
-    val json = JSONObject(jsonString)
-    val rootComponent = json.getJSONObject("root")
+private fun processComponent(className: String, componentJson: JSONObject, classes: MutableList<ClassDefinition>) {
+    val properties = mutableListOf<Property>()
 
-    val generatedClasses = mutableListOf<String>()
-    val processedClasses = mutableSetOf<String>()
-
-    generateDataClassSimple("Root", rootComponent, generatedClasses, processedClasses)
-
-    // Print all generated classes
-    generatedClasses.forEach { println(it) }
-}
-
-fun generateDataClassSimple(
-    className: String,
-    component: JSONObject,
-    generatedClasses: MutableList<String>,
-    processedClasses: MutableSet<String>
-) {
-    if (processedClasses.contains(className)) {
-        return
-    }
-
-    // Process nested components first
-    if (component.has("components")) {
-        val components = component.getJSONObject("components")
-        val componentNames = components.keys()
-
-        while (componentNames.hasNext()) {
-            val componentName = componentNames.next()
-            val nestedClassName = componentName.replaceFirstChar { it.uppercase() }
-            val nestedComponent = components.getJSONObject(componentName)
-
-            generateDataClassSimple(nestedClassName, nestedComponent, generatedClasses, processedClasses)
-        }
-    }
-
-    val properties = mutableListOf<String>()
-
-    // Process direct properties
-    if (component.has("properties")) {
-        val propertiesArray = component.getJSONArray("properties")
-
-        for (i in 0 until propertiesArray.length()) {
-            val property = propertiesArray.getJSONObject(i)
-            val propName = property.getString("name")
-            val propType = property.getString("type")
-
-            val kotlinType = when (propType) {
-                "string" -> "String"
-                "array" -> "List<ANY>"
-                "boolean" -> "Boolean"
-                "number" -> "Int"
-                else -> propType.replaceFirstChar { it.uppercase() }
+    // Handle components (nested objects)
+    if (componentJson.has("components")) {
+        val components = componentJson.getJSONObject("components")
+        components.keys().forEach { componentKey ->
+            val component = components.getJSONObject(componentKey)
+            val itemName = if (component.has("itemName")) {
+                component.getString("itemName")
+            } else {
+                componentKey.removeSuffix("s") // Simple pluralization handling
             }
 
-            properties.add("$propName: $kotlinType")
+            val isArray = component.optBoolean("array", false)
+            val capitalizedItemName = itemName.capitalize()
+
+            // Recursively process nested component
+            processComponent(capitalizedItemName, component, classes)
+
+            // Add property to current class
+            val propertyType = if (isArray) "List<$capitalizedItemName>" else capitalizedItemName
+            properties.add(Property(componentKey, propertyType))
         }
     }
 
-    val dataClass = if (properties.isEmpty()) {
-        "@Serializable\ndata class $className()"
-    } else {
-        "@Serializable\ndata class $className(${properties.joinToString(", ")})"
+    // Handle direct properties
+    if (componentJson.has("properties")) {
+        val propertiesJson = componentJson.getJSONObject("properties")
+        propertiesJson.keys().forEach { propertyKey ->
+            val propertyType = propertiesJson.getString(propertyKey)
+            val kotlinType = mapJsonTypeToKotlin(propertyType)
+            properties.add(Property(propertyKey, kotlinType))
+        }
     }
 
-    generatedClasses.add(dataClass)
-    processedClasses.add(className)
+    // Only add class if it has properties
+    if (properties.isNotEmpty()) {
+        classes.add(ClassDefinition(className.capitalize(), properties))
+    }
 }
 
-// Example usage
-fun main() {
-    val jsonInput = """
-{"root": {"properties": [
-    {
-        "name": "actionsRemaining",
-        "type": "string"
-    },
-    {
-        "name": "turn",
-        "type": "string"
-    },
-    {
-        "name": "outbreaks",
-        "type": "string"
-    },
-    {
-        "name": "playerCards",
-        "type": "string"
-    },
-    {
-        "name": "currentPlayerRole",
-        "type": "string"
+private fun mapJsonTypeToKotlin(jsonType: String): String {
+    return when (jsonType.lowercase()) {
+        "string" -> "String"
+        "int", "integer" -> "Int"
+        "long" -> "Long"
+        "double", "float" -> "Double"
+        "boolean", "bool" -> "Boolean"
+        else -> "String" // Default to String for unknown types
     }
-]}}
-    """.trimIndent()
+}
 
-    println("=== Using KotlinPoet ===")
-    generateDataClasses(jsonInput)
+private fun writeDataClassesToFile(classes: List<ClassDefinition>) {
+    val file = File("src/main/kotlin/Root.kt")
 
-    println("\n=== Using Simple String Generation ===")
-    generateDataClassesSimple(jsonInput)
+    // Create directories if they don't exist
+    file.parentFile.mkdirs()
+
+    FileWriter(file).use { writer ->
+        writer.write("import kotlinx.serialization.Serializable\n\n")
+
+        // Write each data class
+        classes.reversed().forEach { classDefinition ->
+            writer.write("@Serializable\ndata class ${classDefinition.name}(\n")
+
+            classDefinition.properties.forEachIndexed { index, property ->
+                val comma = if (index < classDefinition.properties.size - 1) "," else ""
+                writer.write("  val ${property.name}: ${property.type}$comma\n")
+            }
+
+            writer.write(")\n\n")
+        }
+    }
+
+    println("Data classes written to src/main/kotlin/Root.kt")
+}
+
+// Extension function to capitalize first letter
+private fun String.capitalize(): String {
+    return if (isEmpty()) this else this[0].uppercaseChar() + substring(1)
+}
+
+fun main() {
+    try {
+        // Read JSON from data.json file
+        val jsonFile = File("data.json")
+        if (!jsonFile.exists()) {
+            println("Error: data.json file not found!")
+            return
+        }
+
+        val jsonInput = jsonFile.readText()
+
+        convertJsonToKotlinDataClasses(jsonInput)
+
+    } catch (e: Exception) {
+        println("Error reading or processing JSON file: ${e.message}")
+        e.printStackTrace()
+    }
 }
