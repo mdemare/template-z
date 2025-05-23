@@ -1,7 +1,5 @@
-import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
 
@@ -43,24 +41,30 @@ private fun processElementRecursively(element: Element?): JSONObject? {
     return null
 }
 
+private fun examineElementForProperties(element: Element, ancestorStack: MutableList<Pair<String, JSONObject>>) {
+    val textContentAttr = element.attr("data-text-content")
+    element.attributes().forEach { attribute ->
+        if (attribute.key != "class") {println(attribute.key)}
+        if (attribute.key.startsWith("data-attribute-")) {
+            println("ATTRIBUTE")
+            println(attribute.key)
+            println(attribute.value)
+            parseAndAddProperty(attribute.value, ancestorStack)
+        }
+    }
+
+    // Handle property-containing attributes
+    if (textContentAttr.isNotEmpty()) {
+        parseAndAddProperty(textContentAttr, ancestorStack)
+    }
+}
+
 private fun processChildren(element: Element, currentValue: JSONObject, ancestorStack: MutableList<Pair<String, JSONObject>>) {
     for (child in element.children()) {
         val componentName = child.attr("data-component")
-        val textContentAttr = child.attr("data-text-content")
         val collectionAttr = child.attr("data-collection")
 
-        child.attributes().forEach { attribute ->
-            if (attribute.key.startsWith("data-attribute-")) {
-                println(attribute.key)
-                println(attribute.value)
-                parseAndAddProperty(attribute.value, ancestorStack)
-            }
-        }
-
-        // Handle property-containing attributes
-        if (textContentAttr.isNotEmpty()) {
-            parseAndAddProperty(textContentAttr, ancestorStack)
-        }
+        examineElementForProperties(child, ancestorStack)
 
         // Handle data-collection attribute
         if (collectionAttr.isNotEmpty()) {
@@ -83,6 +87,8 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
 
                     // Add this collection item to ancestor stack
                     ancestorStack.add(Pair(collectionItemName, collectionItemObject))
+
+                    examineElementForProperties(collectionItem, ancestorStack)
 
                     // Handle data-text-content attribute on the collection item itself
                     val collectionItemTextContent = collectionItem.attr("data-text-content")
@@ -128,28 +134,44 @@ private fun processChildren(element: Element, currentValue: JSONObject, ancestor
         }
     }
 }
-private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair<String, JSONObject>>) {
-    // Extract value from ${} if present
-    val processedValue = if (attributeValue.matches(Regex("\\$\\{.*}"))) {
+
+fun templateVariableRange(attributeValue: String): IntRange? = Regex("\\$\\{.*?}").find(attributeValue)?.range
+
+fun applyTemplate(attributeValue: String, variableValue: String): String {
+    val expression = extractExpression(attributeValue)
+    return if (expression == attributeValue) {
+        variableValue
+    } else {
+        attributeValue.replace("\${$expression}", variableValue)
+    }
+}
+
+fun extractExpression(attributeValue: String): String {
+    val range = templateVariableRange(attributeValue)
+    return if (range != null) {
         // Extract content between ${ and }
-        val x = attributeValue.substring(2, attributeValue.length - 1)
-        println("X")
-        println(x)
-        x
+        attributeValue.substring(range.first + 2, range.endInclusive)
     } else {
         attributeValue
     }
+}
+
+fun extractVariable(attributeValue: String): Pair<String, String> {
+    // Extract value from ${} if present
+    val processedValue = extractExpression(attributeValue)
 
     // Parse attribute value (expecting format like "objectName.propertyName")
     val parts = processedValue.split(".", limit = 2)
     if (parts.size != 2) {
-        println("Warning: Invalid attribute format: $processedValue (expected format: objectName.propertyName)")
-        return
+        throw Exception("Warning: Invalid attribute format: $processedValue (expected format: objectName.propertyName)")
     }
-
     val objectName = parts[0].trim()
     val propertyName = parts[1].trim()
+    return objectName to propertyName
+}
 
+private fun parseAndAddProperty(attributeValue: String, ancestorStack: List<Pair<String, JSONObject>>) {
+    val (objectName, propertyName) = extractVariable(attributeValue)
     // Look up the object name among ancestors (from most recent to oldest)
     for (i in ancestorStack.indices.reversed()) {
         val (ancestorName, ancestorObject) = ancestorStack[i]

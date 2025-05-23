@@ -1,11 +1,65 @@
-import kotlinx.serialization.Serializable
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.contentType
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.RoutingCall
+import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
+import kotlin.text.isBlank
+
+suspend fun renderEndpoint(call: RoutingCall) {
+    // Log the request
+    val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    println("[$timestamp] ${call.request.httpMethod.value} ${call.request.path()}")
+
+    try {
+        val jsonContent = if (call.request.contentType().match(ContentType.Application.FormUrlEncoded)) {
+            // Handle form data
+            val parameters = call.receiveParameters()
+            parameters["jsonData"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, "Error: Missing jsonData parameter in form")
+                return
+            }
+        } else {
+            // Handle raw JSON in request body (existing behavior)
+            call.receiveText()
+        }
+
+        if (jsonContent.isBlank()) {
+            call.respond(HttpStatusCode.BadRequest, "Error: Missing JSON data")
+            return
+        }
+
+        // Check if HTML file exists
+        val htmlFile = File(HTML_FILE_PATH)
+        if (!htmlFile.exists()) {
+            call.respond(HttpStatusCode.InternalServerError, "Error: HTML file not found at $HTML_FILE_PATH")
+            return
+        }
+
+        // Parse and render
+        val root = Json.decodeFromString<Root>(jsonContent)
+        val html = renderHtml(htmlFile, root)
+        call.respondText(html, ContentType.Text.Html)
+
+    } catch (e: Exception) {
+        println("Error rendering: ${e.message}")
+        call.respond(HttpStatusCode.BadRequest, "Error: Invalid JSON format - ${e.message}")
+    }
+}
 
 fun renderHtml(htmlFile: File, rootData: Any): String {
     // Parse the HTML file
@@ -31,12 +85,30 @@ private fun processElementForRendering(element: Element?, contextStack: MutableL
     // Handle data-text-content attribute first
     if (textContentAttr.isNotEmpty()) {
         println("Found text content attribute: $textContentAttr on element: ${element.tagName()}")
-        val textValue = resolveTextContent(textContentAttr, contextStack)
-        if (textValue != null) {
-            println("Setting text content to: $textValue")
-            element.text(textValue)
+        val textValue = resolveExpression(textContentAttr, contextStack)
+        element.text(textValue)
+    }
+
+    // Handle data-attribute- prefixed attributes
+    val attributesToProcess = element.attributes().asList()
+        .filter { it.key.startsWith("data-attribute-") }
+
+    for (attr in attributesToProcess) {
+        val attributeName = attr.key.removePrefix("data-attribute-")
+        val value = attr.value
+
+        println("Processing data-attribute: $attributeName with value: $value")
+
+        val expression = extractExpression(value)
+        if (expression != value) {
+            val variableValue = resolveExpression(expression, contextStack)
+            val finalValue = applyTemplate(value, variableValue)
+            element.attr(attributeName, finalValue)
+            println("Set attribute $attributeName to: $finalValue")
         } else {
-            println("Failed to resolve text content for: $textContentAttr")
+            // No expression found, use value as-is
+            element.attr(attributeName, value)
+            println("Set attribute $attributeName to literal value: $value")
         }
     }
 
@@ -120,7 +192,6 @@ private fun handleCollectionRendering(element: Element, collectionAttr: String, 
 
                     // Add the processed element to the parent
                     element.appendChild(clonedElement)
-                    println("Added cloned element to parent")
 
                     elementsCreated++
                 }
@@ -131,7 +202,6 @@ private fun handleCollectionRendering(element: Element, collectionAttr: String, 
             assert(element.children().size == nrItems) {
                 "Mismatch: Created $elementsCreated elements but expected $nrItems (items in collection of size ${collectionData.size})"
             }
-            println("Assertion passed: Created $elementsCreated elements for $nrItems items")
 
         } else {
             println("No template element found with data-collection-item attribute")
@@ -160,12 +230,12 @@ private fun findDataObjectForComponent(componentName: String, contextStack: List
     return null
 }
 
-private fun resolveTextContent(textContentAttr: String, contextStack: List<Pair<String, Any>>): String? {
-    println("Resolving text content: $textContentAttr")
+private fun resolveExpression(expression: String, contextStack: List<Pair<String, Any>>): String {
+    println("Resolving expression: $expression")
     println("Current context: ${contextStack.map { "${it.first}:${it.second.javaClass.simpleName}" }}")
 
-    // Parse attribute value - could be "propertyName" or "objectName.propertyName"
-    val parts = textContentAttr.split(".", limit = 2)
+    // Parse attribute value - "objectName.propertyName"
+    val parts = expression.split(".", limit = 2)
 
     if (parts.size == 2) {
         // Format: "objectName.propertyName"
@@ -178,28 +248,13 @@ private fun resolveTextContent(textContentAttr: String, contextStack: List<Pair<
                 println("Found matching object: $contextName")
                 val propertyValue = getPropertyValue(contextObj, propertyName)
                 println("Property value for $propertyName: $propertyValue")
-                return propertyValue?.toString()
-            }
-        }
-
-        println("Warning: Could not resolve $textContentAttr - object '$objectName' not found in context")
-    } else {
-        // Format: "propertyName" - look for property in current context (most recent object)
-        val propertyName = parts[0].trim()
-
-        // Search from most recent context backwards
-        for ((contextName, contextObj) in contextStack.reversed()) {
-            val propertyValue = getPropertyValue(contextObj, propertyName)
-            if (propertyValue != null) {
-                println("Found property '$propertyName' in object '$contextName': $propertyValue")
                 return propertyValue.toString()
             }
         }
-
-        println("Warning: Could not find property '$propertyName' in any context object")
+        throw Exception("Warning: Could not resolve $expression - object '$objectName' not found in context")
+    } else {
+        throw Exception("Illegal format ${expression}")
     }
-
-    return null
 }
 
 private fun resolveCollectionData(collectionAttr: String, contextStack: List<Pair<String, Any>>): Any? {

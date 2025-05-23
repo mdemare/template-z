@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Class Form Generator</title>
-    <link rel="stylesheet" href="http://localhost:3333/public/css/style.css">
+    <link rel="stylesheet" href="http://localhost:3333/css/form-generator.css">
 </head>
 <body>
 <div class="container">
@@ -16,11 +16,7 @@
     <div class="content">
         <div class="definition-section">
             <h3 class="section-title">📝 Data Class Definition</h3>
-            <textarea id="dataClassInput" placeholder="Paste your Kotlin data class definitions here...">data class PlayerHand(val color: String)
-data class Player(val roleName: String, val playerHands: Array<PlayerHand>)
-data class Panel(val speed: String)
-data class Root(val players: Array<Player>, val panel: Panel)
-</textarea>
+            <textarea id="dataClassInput" placeholder="Paste your Kotlin data class definitions here...">DATACLASSES</textarea>
             <button onclick="parseDataClasses()">🔄 Generate Form</button>
         </div>
 
@@ -40,6 +36,6 @@ data class Root(val players: Array<Player>, val panel: Panel)
     </div>
 </div>
 
-<script src="http://localhost:3333/public/js/form-generator.js"></script>
+<script src="http://localhost:3333/js/form-generator.js"></script>
 </body>
 </html>
